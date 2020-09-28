@@ -55,67 +55,7 @@ object HomeWork2 {
   }
 
   sealed trait Movable {
-    def move(x: Double, y: Double, z: Double): Shape =
-      this match {
-        case Point(px, py, pz) => Point(px + x, py + y, pz + z)
-        case Origin2           => Origin2
-        case Circle(center, radius) =>
-          Circle(Point(center.x + x, center.y + y, center.z + z), radius)
-        case Sphere(center) =>
-          Sphere(
-            Circle(
-              Point(center.x + x, center.y + y, center.z + z),
-              center.radius
-            )
-          )
-        case Triangle(p1, p2, p3) => ???
-        case Square(startingPoint, width) =>
-          Square(
-            Point(
-              startingPoint.x + x,
-              startingPoint.y + y,
-              startingPoint.z + z
-            ),
-            width
-          )
-        case Rectangle(startingPoint, width, length) =>
-          Rectangle(
-            Point(
-              startingPoint.x + x,
-              startingPoint.y + y,
-              startingPoint.z + z
-            ),
-            width,
-            length
-          )
-        case Cube(base, height) =>
-          Cube(
-            Square(
-              Point(
-                base.x + x,
-                base.y + y,
-                base.z + z
-              ),
-              base.width
-            ),
-            height
-          )
-        case Cuboid(base, height) =>
-          Cuboid(
-            Rectangle(
-              Point(
-                base.x + x,
-                base.y + y,
-                base.z + z
-              ),
-              base.width,
-              base.length
-            ),
-            height
-          )
-        case Tetrahedron(base, topPoint)     => ???
-        case TriangularPrism(base, topPoint) => ???
-      }
+    def move(x: Double, y: Double, z: Double): Shape
   }
 
   // Area is a list so it can be applied to 3D shapes as well.
@@ -190,6 +130,9 @@ object HomeWork2 {
     override def maxY: Double = y
     override def minZ: Double = z
     override def maxZ: Double = z
+
+    override def move(px: Double, py: Double, pz: Double): Point =
+      Point(px + x, py + y, pz + z)
   }
 
   // Not sure what origin declaration would be best, adding two.
@@ -207,6 +150,8 @@ object HomeWork2 {
     override def maxY: Double = 0
     override def minZ: Double = 0
     override def maxZ: Double = 0
+
+    override def move(x: Double, y: Double, z: Double): Point = Point(x, y, z)
   }
 
   // 2D shapes.
@@ -222,6 +167,8 @@ object HomeWork2 {
     override def maxY: Double = ???
     override def minZ: Double = ???
     override def maxZ: Double = ???
+
+    override def move(p1: Point, p2: Point, p3: Point): Triangle = ???
   }
 
   final case class Square(startingPoint: Point, width: Double) extends Shape {
@@ -235,6 +182,16 @@ object HomeWork2 {
     override def maxY: Double = y + width
     override def minZ: Double = z
     override def maxZ: Double = z
+
+    override def move(startingPoint: Point, width: Double): Square =
+      Square(
+        Point(
+          startingPoint.x + x,
+          startingPoint.y + y,
+          startingPoint.z + z
+        ),
+        width
+      )
   }
 
   final case class Rectangle(
@@ -252,6 +209,21 @@ object HomeWork2 {
     override def maxY: Double = y + length
     override def minZ: Double = z
     override def maxZ: Double = z
+
+    override def move(
+        startingPoint: Point,
+        width: Double,
+        length: Double
+    ): Rectangle =
+      Rectangle(
+        Point(
+          startingPoint.x + x,
+          startingPoint.y + y,
+          startingPoint.z + z
+        ),
+        width,
+        length
+      )
   }
 
   // 3D shapes.
@@ -268,6 +240,9 @@ object HomeWork2 {
     override def maxY: Double = y + radius
     override def minZ: Double = z
     override def maxZ: Double = z
+
+    override def move(center: Point, radius: Double): Circle =
+      Circle(Point(center.x + x, center.y + y, center.z + z), radius)
   }
 
   final case class Cube(base: Square, height: Double) extends Shape {
@@ -281,6 +256,19 @@ object HomeWork2 {
     override def maxY: Double = base.maxY
     override def minZ: Double = base.minZ
     override def maxZ: Double = z + height
+
+    override def move(base: Square, height: Double): Cube =
+      Cube(
+        Square(
+          Point(
+            base.x + x,
+            base.y + y,
+            base.z + z
+          ),
+          base.width
+        ),
+        height
+      )
   }
 
   final case class Cuboid(base: Rectangle, height: Double) extends Shape {
@@ -294,6 +282,20 @@ object HomeWork2 {
     override def maxY: Double = base.maxY
     override def minZ: Double = base.minZ
     override def maxZ: Double = z + height
+
+    override def move(base: Rectangle, height: Double): Cuboid =
+      Cuboid(
+        Rectangle(
+          Point(
+            base.x + x,
+            base.y + y,
+            base.z + z
+          ),
+          base.width,
+          base.length
+        ),
+        height
+      )
   }
 
   final case class Tetrahedron(base: Triangle, topPoint: Point) extends Shape {
@@ -307,6 +309,8 @@ object HomeWork2 {
     override def maxY: Double = base.maxY
     override def minZ: Double = base.minZ
     override def maxZ: Double = topPoint.maxZ
+
+    override def move(base: Triangle, topPoint: Point): Tetrahedron = ???
   }
 
   final case class TriangularPrism(base: Rectangle, topPoint: Point)
@@ -321,6 +325,8 @@ object HomeWork2 {
     override def maxY: Double = base.maxY
     override def minZ: Double = base.minZ
     override def maxZ: Double = topPoint.maxZ
+
+    override def move(base: Rectangle, topPoint: Point): TriangularPrism = ???
   }
 
   final case class Sphere(
@@ -335,5 +341,13 @@ object HomeWork2 {
     override def maxY: Double = center.maxY
     override def minZ: Double = z - center.radius
     override def maxZ: Double = z + center.radius
+
+    override def move(center: Circle): Sphere =
+      Sphere(
+        Circle(
+          Point(center.x + x, center.y + y, center.z + z),
+          center.radius
+        )
+      )
   }
 }
