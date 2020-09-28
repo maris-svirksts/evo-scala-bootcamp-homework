@@ -27,7 +27,7 @@
  *
  * 3. Need to look into code duplication and how to fix that.
  *
- * 4. It's assumed that 2D shapes have no height.
+ * 4. It's assumed that 2D shapes have no impact on z axis.
  *
  * 5. 3D triangle: the name is too generic. Could be tetrahedron, triangular prism or other options where one of the areas is a triangle.
  * Tetrahedron and triangular prism included.
@@ -58,6 +58,7 @@ object HomeWork2 {
     def move(x: Double, y: Double, z: Double): Shape =
       this match {
         case Point(px, py, pz) => Point(px + x, py + y, pz + z)
+        case Origin2           => Origin2
         case Circle(center, radius) =>
           Circle(Point(center.x + x, center.y + y, center.z + z), radius)
         case Sphere(center) =>
@@ -68,14 +69,14 @@ object HomeWork2 {
             )
           )
         case Triangle(p1, p2, p3) => ???
-        case Square(startingPoint, squareWidth) =>
+        case Square(startingPoint, width) =>
           Square(
             Point(
               startingPoint.x + x,
               startingPoint.y + y,
               startingPoint.z + z
             ),
-            squareWidth
+            width
           )
         case Rectangle(startingPoint, width, length) =>
           Rectangle(
@@ -87,59 +88,101 @@ object HomeWork2 {
             width,
             length
           )
-        case Cube(base, height)              => ???
-        case Cuboid(base, height)            => ???
+        case Cube(base, height) =>
+          Cube(
+            Square(
+              Point(
+                base.x + x,
+                base.y + y,
+                base.z + z
+              ),
+              base.width
+            ),
+            height
+          )
+        case Cuboid(base, height) =>
+          Cuboid(
+            Rectangle(
+              Point(
+                base.x + x,
+                base.y + y,
+                base.z + z
+              ),
+              base.width,
+              base.length
+            ),
+            height
+          )
         case Tetrahedron(base, topPoint)     => ???
         case TriangularPrism(base, topPoint) => ???
       }
   }
 
-  // area is a list so it can be applied to 3D shapes as well.
+  // Area is a list so it can be applied to 3D shapes as well.
   sealed trait Calculations {
     def area(): List[Double] =
       this match {
         case Point(px, py, pz)                       => List(0.00)
+        case Origin2                                 => List(0.00)
         case Circle(center, radius)                  => List(math.Pi * math.pow(radius, 2))
-        case Sphere(center)                          => List(4 * math.Pi * math.pow(center.radius, 2))
+        case Sphere(center)                          => List(4.00 * math.Pi * math.pow(center.radius, 2))
         case Triangle(p1, p2, p3)                    => List(???)
-        case Square(startingPoint, squareWidth)      => List(???)
-        case Rectangle(startingPoint, width, length) => List(???)
-        case Cube(base, height)                      => List(???)
-        case Cuboid(base, height)                    => List(???)
-        case Tetrahedron(base, topPoint)             => List(???)
-        case TriangularPrism(base, topPoint)         => List(base.area()).flatten
+        case Square(startingPoint, width)            => List(math.pow(width, 2))
+        case Rectangle(startingPoint, width, length) => List(width * length)
+        case Cube(base, height)                      => List.fill(6)(base.area()).flatten
+        case Cuboid(base, height) =>
+          List(
+            base.area()
+          ).flatten // TODO: Need to add all other areas. Only base added at this point.
+        case Tetrahedron(base, topPoint) =>
+          List(
+            base.area()
+          ).flatten // TODO: Need to add all other areas. Only base added at this point.
+        case TriangularPrism(base, topPoint) =>
+          List(
+            base.area()
+          ).flatten // TODO: Need to add all other areas. Only base added at this point.
       }
 
     def surfaceArea: Double =
       this match {
-        case Point(px, py, pz)                       => 0.00
-        case Circle(center, radius)                  => (math.Pi * math.pow(radius, 2)) * 2
-        case Sphere(center)                          => 4 * math.Pi * math.pow(center.radius, 2)
-        case Triangle(p1, p2, p3)                    => ???
-        case Square(startingPoint, squareWidth)      => ???
-        case Rectangle(startingPoint, width, length) => ???
-        case Cube(base, height)                      => ???
-        case Cuboid(base, height)                    => ???
-        case Tetrahedron(base, topPoint)             => ???
-        case TriangularPrism(base, topPoint)         => ???
+        case Point(px, py, pz)      => 0.00
+        case Origin2                => 0.00
+        case Circle(center, radius) => (math.Pi * math.pow(radius, 2)) * 2
+        case Sphere(center)         => center.surfaceArea * 2
+        case Triangle(p1, p2, p3)   => Triangle(p1, p2, p3).area().sum * 2
+        case Square(startingPoint, width) =>
+          Square(startingPoint, width).area().sum * 2
+        case Rectangle(startingPoint, width, length) =>
+          Rectangle(startingPoint, width, length).area().sum
+        case Cube(base, height)   => Cube(base, height).area().sum
+        case Cuboid(base, height) => Cuboid(base, height).area().sum
+        case Tetrahedron(base, topPoint) =>
+          Tetrahedron(base, topPoint).area().sum
+        case TriangularPrism(base, topPoint) =>
+          TriangularPrism(base, topPoint).area().sum
       }
 
     def volume: Double =
       this match {
         case Point(px, py, pz)      => 0.00
+        case Origin2                => 0.00
         case Circle(center, radius) => math.Pi * math.pow(radius, 2)
         case Sphere(center) =>
           4.00 / 3.00 * math.Pi * math.pow(center.radius, 3)
-        case Triangle(p1, p2, p3)                    => ???
-        case Square(startingPoint, squareWidth)      => ???
-        case Rectangle(startingPoint, width, length) => ???
-        case Cube(base, height)                      => ???
-        case Cuboid(base, height)                    => ???
-        case Tetrahedron(base, topPoint)             => ???
-        case TriangularPrism(base, topPoint)         => ???
+        case Triangle(p1, p2, p3) => Triangle(p1, p2, p3).area().sum
+        case Square(startingPoint, width) =>
+          Square(startingPoint, width).area().sum
+        case Rectangle(startingPoint, width, length) =>
+          Rectangle(startingPoint, width, length).area().sum
+        case Cube(base, height)              => base.area().sum * height
+        case Cuboid(base, height)            => base.area().sum * height
+        case Tetrahedron(base, topPoint)     => ???
+        case TriangularPrism(base, topPoint) => ???
       }
   }
 
+  // Point / origin
   final case class Point(x: Double, y: Double, z: Double) extends Shape {
     override def minX: Double = x
     override def maxX: Double = x
@@ -149,7 +192,25 @@ object HomeWork2 {
     override def maxZ: Double = z
   }
 
-  // There are several types of triangles possible, leaving the calculations undone because the homework doesn't require that.
+  // Not sure what origin declaration would be best, adding two.
+  val origin: Point =
+    Point(0, 0, 0) // It can't be changed because it's a val instead of a var
+
+  object Origin2 extends Shape {
+    def x: Double = 0
+    def y: Double = 0
+    def z: Double = 0
+
+    override def minX: Double = 0
+    override def maxX: Double = 0
+    override def minY: Double = 0
+    override def maxY: Double = 0
+    override def minZ: Double = 0
+    override def maxZ: Double = 0
+  }
+
+  // 2D shapes.
+  // TODO: add calculations for triangles.
   final case class Triangle(p1: Point, p2: Point, p3: Point) extends Shape {
     override val x = ???
     override val y = ???
@@ -163,16 +224,15 @@ object HomeWork2 {
     override def maxZ: Double = ???
   }
 
-  final case class Square(startingPoint: Point, squareWidth: Double)
-      extends Shape {
+  final case class Square(startingPoint: Point, width: Double) extends Shape {
     override val x = startingPoint.x
     override val y = startingPoint.y
     override val z = startingPoint.z
 
     override def minX: Double = x
-    override def maxX: Double = x + squareWidth
+    override def maxX: Double = x + width
     override def minY: Double = y
-    override def maxY: Double = y + squareWidth
+    override def maxY: Double = y + width
     override def minZ: Double = z
     override def maxZ: Double = z
   }
@@ -194,6 +254,7 @@ object HomeWork2 {
     override def maxZ: Double = z
   }
 
+  // 3D shapes.
   final case class Circle(
       center: Point,
       radius: Double
