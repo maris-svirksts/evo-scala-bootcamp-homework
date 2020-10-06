@@ -1,7 +1,5 @@
 package basic
 
-import scala.collection.immutable.ListMap
-
 object HomeWork4 {
 
   // Homework
