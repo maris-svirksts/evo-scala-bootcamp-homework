@@ -33,15 +33,13 @@ object HomeWork4 {
   def sortConsideringEqualValues[T](
       map: Map[T, Int]
   ): List[Map[Set[T], Int]] = {
-    val mapSortedByValue = map.groupBy(_._2)
+    val mapSortedByValue = map.groupBy(f => f._2)
 
     val result = for {
       (key, value) <- mapSortedByValue
-    } yield (mergeKeys(value) -> value.toSeq(0)._2)
+    } yield Map(mergeKeys(value) -> value.toSeq.head._2)
 
-    println(result)
-
-    val results = ???
+    val results = result.toList
     results
   }
 
