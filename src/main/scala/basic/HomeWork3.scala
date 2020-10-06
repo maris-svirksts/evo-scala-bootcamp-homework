@@ -18,7 +18,7 @@ object HomeWork3 {
         if (divisor.toInt == 0) Left(ErrorMessage("Division by 0."))
         else
           Right(
-            PolishResult(
+            Result(
               "divided",
               List(dividend, divisor),
               dividend / divisor
@@ -29,34 +29,29 @@ object HomeWork3 {
 
     final case class Sum(numbers: List[Double]) extends Command {
       override def calculations: Either[ErrorMessage, Result] =
-        Right(PolishResult("sum", numbers, numbers.sum))
+        Right(Result("sum", numbers, numbers.sum))
     }
     final case class Average(numbers: List[Double]) extends Command {
       override def calculations: Either[ErrorMessage, Result] =
-        Right(PolishResult("average", numbers, numbers.sum / numbers.length))
+        Right(Result("average", numbers, numbers.sum / numbers.length))
     }
     final case class Min(numbers: List[Double]) extends Command {
       override def calculations: Either[ErrorMessage, Result] =
-        Right(PolishResult("minimum", numbers, numbers.min))
+        Right(Result("minimum", numbers, numbers.min))
     }
     final case class Max(numbers: List[Double]) extends Command {
       override def calculations: Either[ErrorMessage, Result] =
-        Right(PolishResult("maximum", numbers, numbers.max))
+        Right(Result("maximum", numbers, numbers.max))
     }
   }
 
   final case class ErrorMessage(value: String)
 
-  sealed trait Result {
-    def action: String
-    def elements: List[Double]
-    def value: Double
-  }
-  final case class PolishResult(
+  final case class Result(
       action: String,
       elements: List[Double],
       value: Double
-  ) extends Result
+  )
 
   //Thanks to Juris Krikis for suggestion.
   def isDoubleNumber(s: String): Boolean = s.toDoubleOption.isDefined
