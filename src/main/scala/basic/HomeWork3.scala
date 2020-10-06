@@ -37,11 +37,11 @@ object HomeWork3 {
     }
     final case class Min(numbers: List[Double]) extends Command {
       override def calculations: Either[ErrorMessage, Result] =
-        Right(PolishResult("min", numbers, numbers.min))
+        Right(PolishResult("minimum", numbers, numbers.min))
     }
     final case class Max(numbers: List[Double]) extends Command {
       override def calculations: Either[ErrorMessage, Result] =
-        Right(PolishResult("max", numbers, numbers.max))
+        Right(PolishResult("maximum", numbers, numbers.max))
     }
   }
 
@@ -58,8 +58,8 @@ object HomeWork3 {
       value: Double
   ) extends Result
 
-  //Taken from https://stackoverflow.com/questions/9938098/how-to-check-to-see-if-a-string-is-a-decimal-number-in-scala
-  def isDoubleNumber(s: String): Boolean = (allCatch opt s.toDouble).isDefined
+  //Thanks to Juris Krikis for suggestion.
+  def isDoubleNumber(s: String): Boolean = s.toDoubleOption.isDefined
 
   /*
    * Checks are done for the following issues:
@@ -114,9 +114,7 @@ object HomeWork3 {
         .replaceFirst(".0", "") + " is " + x.value.toString
         .replaceFirst(".0", "")
     else
-      "the " + x.action
-        .replaceFirst("min", "minimum")
-        .replaceFirst("max", "maximum") + " of " + x.elements
+      "the " + x.action + " of " + x.elements
         .map(double => double.toString.replaceFirst(".0", ""))
         .mkString(" ") + " is " + x.value.toString.replaceFirst(".0", "")
 
