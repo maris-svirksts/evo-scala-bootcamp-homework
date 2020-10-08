@@ -11,7 +11,7 @@ class HomeWork4Spec extends AnyFlatSpec with should.Matchers {
     ).toString shouldEqual List(
       (Set('e'), 0),
       (Set('a', 'd'), 1),
-      (Set('f', 'b', 'g'), 2),
+      (Set('b', 'f', 'g'), 2),
       (Set('c'), 4)
     ).toString
   }

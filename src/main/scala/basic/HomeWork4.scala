@@ -1,5 +1,7 @@
 package basic
 
+import scala.math._
+
 object HomeWork4 {
 
   // Homework
@@ -20,22 +22,15 @@ object HomeWork4 {
   // Input `Map("a" -> 1, "b" -> 2, "c" -> 4, "d" -> 1, "e" -> 0, "f" -> 2, "g" -> 2)` should result in
   // output `List(Set("e") -> 0, Set("a", "d") -> 1, Set("b", "f", "g") -> 2, Set("c") -> 4)`.
 
-  def mergeKeys[T](value: Map[T, Int]): Set[T] = {
-    val result = for {
-      (key, value) <- value
-    } yield key
-
-    result.toSet
-  }
-
-  def sortConsideringEqualValues[T](map: Map[T, Int]): List[(Set[T], Int)] = {
+  def sortConsideringEqualValues[T](
+      map: Map[T, Int]
+  )(implicit ev$1: T => Ordered[T]): List[(Set[T], Int)] = {
     val mapGroupedByValue = map.groupBy(f => f._2)
+    val partiallySortedResults = mapGroupedByValue.map(elem =>
+      (elem._2.keySet.toSeq.sorted.toSet, elem._1)
+    )
+    val results = partiallySortedResults.toList.sortBy(f => f._2)
 
-    val result = for {
-      (key, value) <- mapGroupedByValue
-    } yield (mergeKeys(value) -> value.toSeq.head._2)
-
-    val results = result.toList.sortBy(f => f._2)
     results
   }
 
