@@ -212,9 +212,9 @@ object HomeWork2 {
   // 2D shapes.
   // TODO: add calculations for triangles.
   final case class Triangle(p1: Point, p2: Point, p3: Point) extends Shape {
-    override val x = ???
-    override val y = ???
-    override val z = ???
+    override val x: Double = ???
+    override val y: Double = ???
+    override val z: Double = ???
 
     override def minX: Double = ???
     override def maxX: Double = ???
@@ -225,9 +225,9 @@ object HomeWork2 {
   }
 
   final case class Square(startingPoint: Point, width: Double) extends Shape {
-    override val x = startingPoint.x
-    override val y = startingPoint.y
-    override val z = startingPoint.z
+    override val x: Double = startingPoint.x
+    override val y: Double = startingPoint.y
+    override val z: Double = startingPoint.z
 
     override def minX: Double = x
     override def maxX: Double = x + width
@@ -242,9 +242,9 @@ object HomeWork2 {
       width: Double,
       length: Double
   ) extends Shape {
-    override val x = startingPoint.x
-    override val y = startingPoint.y
-    override val z = startingPoint.z
+    override val x: Double = startingPoint.x
+    override val y: Double = startingPoint.y
+    override val z: Double = startingPoint.z
 
     override def minX: Double = x
     override def maxX: Double = x + width
@@ -271,9 +271,9 @@ object HomeWork2 {
   }
 
   final case class Cube(base: Square, height: Double) extends Shape {
-    override val x = base.x
-    override val y = base.y
-    override val z = base.z
+    override val x: Double = base.x
+    override val y: Double = base.y
+    override val z: Double = base.z
 
     override def minX: Double = base.minX
     override def maxX: Double = base.maxX
@@ -284,9 +284,9 @@ object HomeWork2 {
   }
 
   final case class Cuboid(base: Rectangle, height: Double) extends Shape {
-    override val x = base.x
-    override val y = base.y
-    override val z = base.z
+    override val x: Double = base.x
+    override val y: Double = base.y
+    override val z: Double = base.z
 
     override def minX: Double = base.minX
     override def maxX: Double = base.maxX
@@ -297,9 +297,9 @@ object HomeWork2 {
   }
 
   final case class Tetrahedron(base: Triangle, topPoint: Point) extends Shape {
-    override val x = base.x
-    override val y = base.y
-    override val z = base.z
+    override val x: Double = base.x
+    override val y: Double = base.y
+    override val z: Double = base.z
 
     override def minX: Double = base.minX
     override def maxX: Double = base.maxX
@@ -311,9 +311,9 @@ object HomeWork2 {
 
   final case class TriangularPrism(base: Rectangle, topPoint: Point)
       extends Shape {
-    override val x = base.x
-    override val y = base.y
-    override val z = base.z
+    override val x: Double = base.x
+    override val y: Double = base.y
+    override val z: Double = base.z
 
     override def minX: Double = base.minX
     override def maxX: Double = base.maxX
