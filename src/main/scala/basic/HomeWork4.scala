@@ -25,11 +25,13 @@ object HomeWork4 {
   def sortConsideringEqualValues[T](
       map: Map[T, Int]
   )(implicit ev$1: T => Ordered[T]): List[(Set[T], Int)] = {
-    val mapGroupedByValue = map.groupBy(f => f._2)
-    val partiallySortedResults = mapGroupedByValue.map(elem =>
-      (elem._2.keySet.toSeq.sorted.toSet, elem._1)
-    )
-    val results = partiallySortedResults.toList.sortBy(f => f._2)
+    val mapGroupedByValue = map.groupBy { case (_, value) => value }
+    val partiallySortedResults = mapGroupedByValue.map {
+      case (key, value) => (value.keySet.toSeq.sorted.toSet, key)
+    }
+    val results = partiallySortedResults.toList.sortBy {
+      case (_, value) => value
+    }
 
     results
   }
