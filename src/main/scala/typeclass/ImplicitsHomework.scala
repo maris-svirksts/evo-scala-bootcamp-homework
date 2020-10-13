@@ -206,6 +206,8 @@ object ImplicitsHomework {
    */
   object MyTwitter {
     import SuperVipCollections4s._
+    import instances._
+    import syntax._
 
     final case class Twit(
         id: Long,
@@ -226,9 +228,26 @@ object ImplicitsHomework {
       def get(id: Long): Option[Twit]
     }
 
+    //Not sure what's best: leaving the Twit / FBI sizeScores here or moving higher, where others are defined.
+    //Would be interesting to check if can replace them with something generic that sees the types within class, automatically sums their values.
+    implicit def getSizeScoreFbiNote: GetSizeScore[FbiNote] =
+      (fbi: FbiNote) =>
+        fbi.month.sizeScore + fbi.favouriteChar.sizeScore + fbi.watchedPewDiePieTimes.sizeScore
+
+    implicit def getSizeScoreTwit: GetSizeScore[Twit] =
+      (tweet: Twit) =>
+        tweet.id.sizeScore + tweet.userId.sizeScore + tweet.hashTags.sizeScore + tweet.attributes.sizeScore + tweet.fbiNotes.sizeScore
+
     /*
     Return an implementation based on MutableBoundedCache[Long, Twit]
      */
-    def createTwitCache(maxSizeScore: SizeScore): TwitCache = ???
+    def createTwitCache(maxSizeScore: SizeScore): TwitCache =
+      new TwitCache {
+        val twitCache = new MutableBoundedCache[Long, Twit](maxSizeScore)
+
+        // Assuming that twit.id is a good enough identifier.
+        override def put(twit: Twit): Unit = twitCache.put(twit.id, twit)
+        override def get(id: Long): Option[Twit] = twitCache.get(id)
+      }
   }
 }
