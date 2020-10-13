@@ -1,5 +1,6 @@
 package typeclass
 
+import scala.annotation.tailrec
 import scala.collection.immutable.ArraySeq
 import scala.collection.mutable
 
@@ -34,8 +35,12 @@ object ImplicitsHomework {
     }
 
     object syntax {
-      implicit class GetSizeScoreOps[T: GetSizeScore](inner: T) {
-        def sizeScore: SizeScore = ??? //implement the syntax!
+
+      implicit class GetSizeScoreOps[T: GetSizeScore](inner: T)(implicit
+          GetSizeScore: GetSizeScore[T]
+      ) {
+        def sizeScore: SizeScore =
+          GetSizeScore.apply(inner) //implement the syntax!
       }
     }
 
@@ -54,6 +59,11 @@ object ImplicitsHomework {
     final class MutableBoundedCache[K: GetSizeScore, V: GetSizeScore](
         maxSizeScore: SizeScore
     ) {
+      // Might be good for future bootcamps if 'instances' object was before this class - so you do what's required there first:
+      // had me scratching my head for far too long to understand how to get tests for MutableBoundedCache to work because of that.
+      import instances._
+      import syntax._
+
       //with this you can use .sizeScore syntax on keys and values
 
       /*
@@ -61,9 +71,27 @@ object ImplicitsHomework {
        */
       private val map = mutable.LinkedHashMap.empty[K, V]
 
-      def put(key: K, value: V): Unit = ???
+      @tailrec
+      def cleanForEntry(elementSize: Int): Boolean = {
+        if (map.isEmpty) true
+        else if (maxSizeScore < elementSize + map.sizeScore) {
+          // https://stackoverflow.com/questions/24293456/remove-eldest-entry-from-scala-linkedhashmap
+          map -= map.head._1
+          cleanForEntry(elementSize)
+        } else true
+      }
 
-      def get(key: K): Option[V] = ???
+      def put(key: K, value: V): Unit = {
+        if (maxSizeScore < key.sizeScore + value.sizeScore)
+          throw new Error(
+            "Element too large for MutableBoundedCache class"
+          ) // Throwing an error might be a bit too much.
+        else if (cleanForEntry(key.sizeScore + value.sizeScore))
+          map.put(key, value)
+        else throw new Error("Something unknown happened.")
+      }
+
+      def get(key: K): Option[V] = map.get(key)
     }
 
     /**
@@ -93,6 +121,7 @@ object ImplicitsHomework {
     }
 
     object instances {
+      import syntax._
 
       implicit val iterableOnceIterate: Iterate[Iterable] =
         new Iterate[Iterable] {
@@ -105,6 +134,23 @@ object ImplicitsHomework {
       //Provide Iterate2 instances for Map and PackedMultiMap!
       //if the code doesn't compile while you think it should - sometimes full rebuild helps!
 
+      // I'm not entirely sure I understand what's going on.
+      // Could create only because there were enough similarities between Iterate2 trait and Iterate implementations.
+      //
+      implicit val mapIterate: Iterate2[Map] = new Iterate2[Map] {
+        override def iterator1[T, S](f: Map[T, S]): Iterator[T] =
+          f.keys.iterator
+        override def iterator2[T, S](f: Map[T, S]): Iterator[S] =
+          f.values.iterator
+      }
+
+      implicit val packedMultiMapIterate: Iterate2[PackedMultiMap] =
+        new Iterate2[PackedMultiMap] {
+          override def iterator1[T, S](f: PackedMultiMap[T, S]): Iterator[T] =
+            f.inner.map({ case (key, value) => key }).iterator
+          override def iterator2[T, S](f: PackedMultiMap[T, S]): Iterator[S] =
+            f.inner.map({ case (key, value) => value }).iterator
+        }
       /*
       replace this big guy with proper implicit instances for types:
       - Byte, Char, Int, Long
@@ -116,7 +162,41 @@ object ImplicitsHomework {
       If you struggle with writing generic instances for Iterate and Iterate2, start by writing instances for
       List and other collections and then replace those with generic instances.
        */
-      implicit def stubGetSizeScore[T]: GetSizeScore[T] = (_: T) => 42
+
+      implicit def getSizeScoreByte: GetSizeScore[Byte] = (_: Byte) => 1
+      implicit def getSizeScoreChar: GetSizeScore[Char] = (_: Char) => 2
+      implicit def getSizeScoreInt: GetSizeScore[Int] = (_: Int) => 4
+      implicit def getSizeScoreLong: GetSizeScore[Long] = (_: Long) => 8
+
+      implicit def getSizeScoreString: GetSizeScore[String] =
+        (string: String) => 12 + 2 * string.toList.length
+
+      implicit def getSizeScoreArray[T: GetSizeScore]: GetSizeScore[Array[T]] =
+        (array: Array[T]) => 12 + array.map(f => f.sizeScore).sum
+      implicit def getSizeScoreList[T: GetSizeScore]: GetSizeScore[List[T]] =
+        (list: List[T]) => 12 + list.map(f => f.sizeScore).sum
+      implicit def getSizeScoreVector[T: GetSizeScore]
+          : GetSizeScore[Vector[T]] =
+        (vector: Vector[T]) => 12 + vector.map(f => f.sizeScore).sum
+      implicit def getSizeScoreMap[K: GetSizeScore, V: GetSizeScore]
+          : GetSizeScore[Map[K, V]] =
+        (map: Map[K, V]) =>
+          12 + map
+            .map({ case (key, value) => key.sizeScore + value.sizeScore })
+            .sum
+      implicit def getSizeScorePackedMultiMap[K: GetSizeScore, V: GetSizeScore]
+          : GetSizeScore[PackedMultiMap[K, V]] =
+        (packedMultiMap: PackedMultiMap[K, V]) =>
+          12 + packedMultiMap.inner
+            .map({ case (key, value) => key.sizeScore + value.sizeScore })
+            .sum
+
+      implicit def getSizeScoreLinkedHashMap[K: GetSizeScore, V: GetSizeScore]
+          : GetSizeScore[mutable.LinkedHashMap[K, V]] =
+        (linkedHashMap: mutable.LinkedHashMap[K, V]) =>
+          linkedHashMap
+            .map({ case (key, value) => key.sizeScore + value.sizeScore })
+            .sum
     }
   }
 

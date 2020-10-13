@@ -50,8 +50,8 @@ class ImplicitsHomeworkSpec extends AnyFreeSpec with Matchers {
   "Iterate2 instances provided" - {
     "for Map" in {
       assertCompiles(
-        """import com.evolutiongaming.bootcamp.typeclass.ImplicitsHomework.SuperVipCollections4s._
-          |import com.evolutiongaming.bootcamp.typeclass.ImplicitsHomework.SuperVipCollections4s.instances._
+        """import typeclass.ImplicitsHomework.SuperVipCollections4s._
+          |import typeclass.ImplicitsHomework.SuperVipCollections4s.instances._
           |
           |implicitly[Iterate2[Map]]
           |""".stripMargin
@@ -59,8 +59,8 @@ class ImplicitsHomeworkSpec extends AnyFreeSpec with Matchers {
     }
     "for PackedMultiMap" in {
       assertCompiles(
-        """import com.evolutiongaming.bootcamp.typeclass.ImplicitsHomework.SuperVipCollections4s._
-          |import com.evolutiongaming.bootcamp.typeclass.ImplicitsHomework.SuperVipCollections4s.instances._
+        """import typeclass.ImplicitsHomework.SuperVipCollections4s._
+          |import typeclass.ImplicitsHomework.SuperVipCollections4s.instances._
           |
           |implicitly[Iterate2[PackedMultiMap]]
           |""".stripMargin
@@ -69,7 +69,7 @@ class ImplicitsHomeworkSpec extends AnyFreeSpec with Matchers {
   }
 
   "Size scores of primitives" - {
-    import com.evolutiongaming.bootcamp.typeclass.ImplicitsHomework.SuperVipCollections4s.instances._
+    import typeclass.ImplicitsHomework.SuperVipCollections4s.instances._
 
     "Byte" in {
       127.toByte.sizeScore shouldEqual 1
@@ -86,7 +86,7 @@ class ImplicitsHomeworkSpec extends AnyFreeSpec with Matchers {
   }
 
   "Size score of collections" - {
-    import com.evolutiongaming.bootcamp.typeclass.ImplicitsHomework.SuperVipCollections4s.instances._
+    import typeclass.ImplicitsHomework.SuperVipCollections4s.instances._
 
     "String" in {
       "".sizeScore shouldEqual 12
@@ -136,7 +136,7 @@ class ImplicitsHomeworkSpec extends AnyFreeSpec with Matchers {
   }
 
   "TwitCache" - {
-    import com.evolutiongaming.bootcamp.typeclass.ImplicitsHomework.MyTwitter._
+    import typeclass.ImplicitsHomework.MyTwitter._
 
     val id1 = 1L //8
     val twit1 = Twit( //12
@@ -152,10 +152,9 @@ class ImplicitsHomeworkSpec extends AnyFreeSpec with Matchers {
       id2,
       userId = 2,
       hashTags = Vector("foodie"), //+12 + 6 * 2 for chars = +24
-      attributes =
-        PackedMultiMap(
-          "hasNoFriends" -> "true"
-        ), //2 * 12 + 16 * 2 for chars = +56
+      attributes = PackedMultiMap(
+        "hasNoFriends" -> "true"
+      ), //2 * 12 + 16 * 2 for chars = +56
       fbiNotes = List(
         FbiNote( //+12
           month = "september", //+ 12 + 9 * 2 = +30
