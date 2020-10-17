@@ -21,13 +21,19 @@ object HomeWork5 {
   // Copy/Pasted from 3rd homework.
   final case class ErrorMessage(value: String)
 
-  final case class Suit private (value: String) extends AnyVal
+  sealed trait Suit
   object Suit {
-    private val options: List[String] =
-      List("d", "s", "c", "h")
-    def create(value: String): Either[ErrorMessage, Suit] = {
-      value match {
-        case correct if options.contains(value) => Right(Suit(value))
+    final case object Diamonds extends Suit
+    final case object Spades extends Suit
+    final case object Clubs extends Suit
+    final case object Hearts extends Suit
+
+    def create(value: Char): Either[ErrorMessage, Suit] = {
+      value.toLower match {
+        case 'd' => Right(Diamonds)
+        case 's' => Right(Spades)
+        case 'c' => Right(Clubs)
+        case 'h' => Right(Hearts)
         case _ =>
           Left(
             ErrorMessage(
@@ -38,16 +44,42 @@ object HomeWork5 {
     }
   }
 
-  final case class Rank private (value: String) extends AnyVal
+  sealed trait Rank
   object Rank {
-    private val options: List[String] =
-      List("2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A")
+    final case object Two extends Rank
+    final case object Three extends Rank
+    final case object Four extends Rank
+    final case object Five extends Rank
+    final case object Six extends Rank
+    final case object Seven extends Rank
+    final case object Eight extends Rank
+    final case object Nine extends Rank
+    final case object Ten extends Rank
+    final case object Jack extends Rank
+    final case object Queen extends Rank
+    final case object King extends Rank
+    final case object Ace extends Rank
+
     def create(value: String): Either[ErrorMessage, Rank] = {
-      value match {
-        case correct if options.contains(value) => Right(Rank(value))
+      value.toUpperCase match {
+        case "2"  => Right(Two)
+        case "3"  => Right(Three)
+        case "4"  => Right(Four)
+        case "5"  => Right(Five)
+        case "6"  => Right(Six)
+        case "7"  => Right(Seven)
+        case "8"  => Right(Eight)
+        case "9"  => Right(Nine)
+        case "10" => Right(Ten)
+        case "J"  => Right(Jack)
+        case "Q"  => Right(Queen)
+        case "K"  => Right(King)
+        case "A"  => Right(Ace)
         case _ =>
           Left(
-            ErrorMessage("Recheck if rank is from 2 till 10 or J, Q, K or A.")
+            ErrorMessage(
+              "Recheck if rank is from 2 till 10, J, Q, K or A."
+            )
           )
       }
     }
@@ -55,29 +87,26 @@ object HomeWork5 {
 
   final case class Card(rank: Rank, suit: Suit)
 
-  //Might be better if done like Suit and Rank ( more unified ), did it this way to try it out.
-  sealed trait Hand {
-    def create: Option[Hand]
-  }
+  sealed trait Hand
   object Hand {
-    final case class Texas(value: List[Card]) extends Hand {
-      override def create: Option[Hand] = {
-        if (value.length == 2) Some(Texas(value))
+    final case class Texas(value: Set[Card]) extends Hand {
+      def create: Option[Hand] = {
+        if (value.size == 2) Some(Texas(value))
         else None
       }
     }
-    final case class Omaha(value: List[Card]) extends Hand {
-      override def create: Option[Hand] = {
-        if (value.length == 4) Some(Omaha(value))
+    final case class Omaha(value: Set[Card]) extends Hand {
+      def create: Option[Hand] = {
+        if (value.size == 4) Some(Omaha(value))
         else None
       }
     }
   }
 
-  final case class Board private (value: List[Card])
+  final case class Board private (value: Set[Card])
   object Board {
-    def create(value: List[Card]): Option[Board] = {
-      if (value.length == 5) Some(Board(value))
+    def create(value: Set[Card]): Option[Board] = {
+      if (value.size == 5) Some(Board(value))
       else None
     }
   }
@@ -97,10 +126,18 @@ object HomeWork5 {
     final case object RoyalFlush extends Combinations
   }
 
-  final case class TestCase(board: Board, hands: List[Hand])
+  final case class TestCase(board: Board, hands: Set[Hand])
   object TestCase {
-    def create(board: Board, hands: List[Hand]): String = {
-      board.toString + " " + hands.toString
+    def create(board: Board, hands: Set[Hand]): Either[ErrorMessage, String] = {
+      if (hands.isEmpty)
+        Left(ErrorMessage("Should have at least one hand defined"))
+      else if (
+        hands.count(_.toString.length == 2) != hands.size && hands.count(
+          _.toString.length == 4
+        ) != hands.size
+      )
+        Left(ErrorMessage("Mixed Omaha and Texas Hold'em hands."))
+      else Right(board.toString + " " + hands.mkString(" "))
     }
   }
 
