@@ -1,12 +1,14 @@
 package json
 
 import java.time.format.DateTimeFormatter
-import java.time.{LocalDate, ZonedDateTime}
+import java.time.{Instant, LocalDate, ZonedDateTime}
 
 import cats.instances.either._
 import cats.instances.list._
+import cats.syntax.either._
 import cats.syntax.traverse._
 import io.circe
+import io.circe.Decoder
 import io.circe.parser._
 import io.circe.generic.JsonCodec
 import org.scalatest.EitherValues
@@ -58,7 +60,7 @@ class HomeworkSpec extends AnyWordSpec with Matchers with EitherValues {
 object HomeworkSpec {
   @JsonCodec final case class TeamTotals(
       assists: String,
-      fullTimeoutRemaining: String,
+      full_timeout_remaining: String,
       plusMinus: String
   )
   @JsonCodec final case class TeamBoxScore(totals: TeamTotals)
@@ -67,6 +69,17 @@ object HomeworkSpec {
       vTeam: TeamBoxScore
   )
   @JsonCodec final case class PrevMatchup(gameDate: LocalDate, gameId: String)
+
+  // https://stackoverflow.com/questions/38737986/scala-how-to-get-localdate-by-pattern
+  implicit val decodeGameDate: Decoder[LocalDate] = Decoder.decodeString.emap {
+    str =>
+      Either
+        .catchNonFatal(
+          LocalDate.parse(str, DateTimeFormatter.ofPattern("yyyyMMdd"))
+        )
+        .leftMap(err => "LocalDate: " + err.getMessage)
+  }
+
   @JsonCodec final case class BoxScore(
       basicGameData: Game,
       previousMatchup: PrevMatchup,
