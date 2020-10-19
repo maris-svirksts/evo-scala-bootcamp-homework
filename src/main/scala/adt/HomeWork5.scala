@@ -1,5 +1,7 @@
 package adt
 
+import cats.data.NonEmptySet
+
 object HomeWork5 {
 
   // Homework. Define all algebraic data types, which would be needed to implement “Hold’em Hand Strength”
@@ -87,16 +89,16 @@ object HomeWork5 {
 
   final case class Card(rank: Rank, suit: Suit)
 
-  sealed trait Hand
+  sealed trait Hand[H <: Hand[H]]
   object Hand {
-    final case class Texas(value: Set[Card]) extends Hand {
-      def create: Option[Hand] = {
+    final case class Texas(value: Set[Card]) extends Hand[Texas] {
+      def create: Option[Texas] = {
         if (value.size == 2) Some(Texas(value))
         else None
       }
     }
-    final case class Omaha(value: Set[Card]) extends Hand {
-      def create: Option[Hand] = {
+    final case class Omaha(value: Set[Card]) extends Hand[Omaha] {
+      def create: Option[Omaha] = {
         if (value.size == 4) Some(Omaha(value))
         else None
       }
@@ -126,24 +128,25 @@ object HomeWork5 {
     final case object RoyalFlush extends Combinations
   }
 
-  final case class TestCase(board: Board, hands: Set[Hand])
+  final case class TestCase[H <: Hand[H]](
+      board: Board,
+      hands: NonEmptySet[Hand[H]]
+  )
   object TestCase {
-    def create(board: Board, hands: Set[Hand]): Either[ErrorMessage, String] = {
-      if (hands.isEmpty)
-        Left(ErrorMessage("Should have at least one hand defined"))
-      else if (
-        hands.forall(_.isInstanceOf["Texas"]) || hands.forall(
-          _.isInstanceOf["Omaha"]
-        )
-      ) Right(board.toString + " " + hands.mkString(" "))
-      else Left(ErrorMessage("Mixed Omaha and Texas Hold'em hands."))
+    def create[H](
+        board: Board,
+        hands: NonEmptySet[Hand[H]]
+    ): Either[ErrorMessage, String] = {
+      Right(board.toString + " " + hands.toString)
     }
   }
 
   //TODO: do the actual comparison, sorting that depends on the input and the combinations possible.
-  final case class TestResult(value: TestCase)
+  final case class TestResult[H <: Hand[H]](
+      value: TestCase[Hand[H]]
+  )
   object TestResult {
-    def create(value: TestCase): String = {
+    def create[H <: Hand[H]](value: TestCase[Hand[H]]): String = {
       ???
     }
   }
