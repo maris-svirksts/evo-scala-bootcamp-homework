@@ -135,9 +135,8 @@ object HomeWork5 {
         hands.forall(_.isInstanceOf["Texas"]) || hands.forall(
           _.isInstanceOf["Omaha"]
         )
-      )
-        Left(ErrorMessage("Mixed Omaha and Texas Hold'em hands."))
-      else Right(board.toString + " " + hands.mkString(" "))
+      ) Right(board.toString + " " + hands.mkString(" "))
+      else Left(ErrorMessage("Mixed Omaha and Texas Hold'em hands."))
     }
   }
 
