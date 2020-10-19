@@ -132,9 +132,9 @@ object HomeWork5 {
       if (hands.isEmpty)
         Left(ErrorMessage("Should have at least one hand defined"))
       else if (
-        hands.count(_.toString.length == 2) != hands.size && hands.count(
-          _.toString.length == 4
-        ) != hands.size
+        hands.forall(_.isInstanceOf["Texas"]) || hands.forall(
+          _.isInstanceOf["Omaha"]
+        )
       )
         Left(ErrorMessage("Mixed Omaha and Texas Hold'em hands."))
       else Right(board.toString + " " + hands.mkString(" "))
