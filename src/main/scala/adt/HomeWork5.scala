@@ -146,7 +146,7 @@ object HomeWork5 {
       value: Either[ErrorMessage, String]
   )
   object TestResult {
-    def create[H](value: Either[ErrorMessage, String]): String = {
+    def create(value: Either[ErrorMessage, String]): String = {
       ???
     }
   }

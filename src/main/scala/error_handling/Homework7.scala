@@ -85,7 +85,7 @@ object Homework7 {
       def validateNameContents: AllErrorsOr[String] =
         if (
           nameOnPaymentCard.matches(
-            "^([A-Za-z\\s'.-~`]{3,})\\s([A-Za-z'.-~`]{3,})$"
+            "^([A-Za-z\\s'.-~`]{3,})\\s([A-Za-z\\s'.-~`]{3,})$"
           )
         ) nameOnPaymentCard.validNec
         else nameOnCardInvalidCharacters.invalidNec
