@@ -133,7 +133,7 @@ object HomeWork5 {
       hands: NonEmptySet[Hand[H]]
   )
   object TestCase {
-    def create[H](
+    def create[H <: Hand[H]](
         board: Board,
         hands: NonEmptySet[Hand[H]]
     ): Either[ErrorMessage, String] = {
@@ -142,11 +142,11 @@ object HomeWork5 {
   }
 
   //TODO: do the actual comparison, sorting that depends on the input and the combinations possible.
-  final case class TestResult[H <: Hand[H]](
-      value: TestCase[Hand[H]]
+  final case class TestResult(
+      value: Either[ErrorMessage, String]
   )
   object TestResult {
-    def create[H <: Hand[H]](value: TestCase[Hand[H]]): String = {
+    def create[H](value: Either[ErrorMessage, String]): String = {
       ???
     }
   }
