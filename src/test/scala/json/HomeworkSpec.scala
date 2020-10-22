@@ -11,6 +11,7 @@ import io.circe
 import io.circe.Decoder
 import io.circe.parser._
 import io.circe.generic.JsonCodec
+import io.circe.generic.extras._
 import org.scalatest.EitherValues
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -60,7 +61,7 @@ class HomeworkSpec extends AnyWordSpec with Matchers with EitherValues {
 object HomeworkSpec {
   @JsonCodec final case class TeamTotals(
       assists: String,
-      fullTimeoutRemaining: String,
+      @JsonKey("full_timeout_remaining") fullTimeoutRemaining: String,
       plusMinus: String
   )
 
