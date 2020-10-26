@@ -133,10 +133,6 @@ object ImplicitsHomework {
       }
       //Provide Iterate2 instances for Map and PackedMultiMap!
       //if the code doesn't compile while you think it should - sometimes full rebuild helps!
-
-      // I'm not entirely sure I understand what's going on.
-      // Could create only because there were enough similarities between Iterate2 trait and Iterate implementations.
-      //
       implicit val mapIterate: Iterate2[Map] = new Iterate2[Map] {
         override def iterator1[T, S](f: Map[T, S]): Iterator[T] =
           f.keys.iterator
@@ -172,31 +168,37 @@ object ImplicitsHomework {
         (string: String) => 12 + 2 * string.toList.length
 
       implicit def getSizeScoreArray[T: GetSizeScore]: GetSizeScore[Array[T]] =
-        (array: Array[T]) => 12 + array.map(f => f.sizeScore).sum
+        (array: Array[T]) => 12 + array.iterator.foldLeft(0)(_ + _.sizeScore)
       implicit def getSizeScoreList[T: GetSizeScore]: GetSizeScore[List[T]] =
-        (list: List[T]) => 12 + list.map(f => f.sizeScore).sum
+        (list: List[T]) => 12 + list.iterator.foldLeft(0)(_ + _.sizeScore)
       implicit def getSizeScoreVector[T: GetSizeScore]
           : GetSizeScore[Vector[T]] =
-        (vector: Vector[T]) => 12 + vector.map(f => f.sizeScore).sum
+        (vector: Vector[T]) => 12 + vector.iterator.foldLeft(0)(_ + _.sizeScore)
       implicit def getSizeScoreMap[K: GetSizeScore, V: GetSizeScore]
           : GetSizeScore[Map[K, V]] =
         (map: Map[K, V]) =>
-          12 + map
-            .map({ case (key, value) => key.sizeScore + value.sizeScore })
-            .sum
+          12 + map.keysIterator.foldLeft(0)(
+            _ + _.sizeScore
+          ) + map.valuesIterator.foldLeft(0)(
+            _ + _.sizeScore
+          )
       implicit def getSizeScorePackedMultiMap[K: GetSizeScore, V: GetSizeScore]
           : GetSizeScore[PackedMultiMap[K, V]] =
         (packedMultiMap: PackedMultiMap[K, V]) =>
-          12 + packedMultiMap.inner
-            .map({ case (key, value) => key.sizeScore + value.sizeScore })
-            .sum
+          12 + packedMultiMapIterate
+            .iterator1[K, V](packedMultiMap)
+            .iterator
+            .foldLeft(0)(_ + _.sizeScore) + packedMultiMapIterate
+            .iterator2[K, V](packedMultiMap)
+            .iterator
+            .foldLeft(0)(_ + _.sizeScore)
 
       implicit def getSizeScoreLinkedHashMap[K: GetSizeScore, V: GetSizeScore]
           : GetSizeScore[mutable.LinkedHashMap[K, V]] =
         (linkedHashMap: mutable.LinkedHashMap[K, V]) =>
-          linkedHashMap
-            .map({ case (key, value) => key.sizeScore + value.sizeScore })
-            .sum
+          linkedHashMap.keysIterator.foldLeft(0)(
+            _ + _.sizeScore
+          ) + linkedHashMap.valuesIterator.foldLeft(0)(_ + _.sizeScore)
     }
   }
 
