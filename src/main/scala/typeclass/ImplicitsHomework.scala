@@ -69,6 +69,16 @@ object ImplicitsHomework {
       /*
       mutable.LinkedHashMap is a mutable map container which preserves insertion order - this might be useful!
        */
+
+      private implicit def getSizeScoreLinkedHashMap[
+          K: GetSizeScore,
+          V: GetSizeScore
+      ]: GetSizeScore[mutable.LinkedHashMap[K, V]] =
+        (linkedHashMap: mutable.LinkedHashMap[K, V]) =>
+          linkedHashMap.keysIterator.foldLeft(0)(
+            _ + _.sizeScore
+          ) + linkedHashMap.valuesIterator.foldLeft(0)(_ + _.sizeScore)
+
       private val map = mutable.LinkedHashMap.empty[K, V]
 
       @tailrec
@@ -192,13 +202,6 @@ object ImplicitsHomework {
             .iterator2[K, V](packedMultiMap)
             .iterator
             .foldLeft(0)(_ + _.sizeScore)
-
-      implicit def getSizeScoreLinkedHashMap[K: GetSizeScore, V: GetSizeScore]
-          : GetSizeScore[mutable.LinkedHashMap[K, V]] =
-        (linkedHashMap: mutable.LinkedHashMap[K, V]) =>
-          linkedHashMap.keysIterator.foldLeft(0)(
-            _ + _.sizeScore
-          ) + linkedHashMap.valuesIterator.foldLeft(0)(_ + _.sizeScore)
     }
   }
 
