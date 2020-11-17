@@ -1,4 +1,4 @@
-package com.evolutiongaming.bootcamp.effects
+package effects
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
@@ -29,27 +29,26 @@ import scala.util.{Failure, Success, Try}
 object EffectsHomework1Executable {
   final class IO[A] private (val run: () => A) {
     def map[B](f: A => B): IO[B] = IO(f(run()))
-    def flatMap[B](f: A => IO[B]): IO[B] = ???
-    def *>[B](another: IO[B]): IO[B] = flatMap(x => another)
-    def as[B](newValue: => B): IO[B] = map(x => newValue)
+    def flatMap[B](f: A => IO[B]): IO[B] = this.map(f).run()
+    def *>[B](another: IO[B]): IO[B] = this.flatMap(x => another)
+    def as[B](newValue: => B): IO[B] = this.map(_ => newValue)
     def void: IO[Unit] = this as ()
-    def attempt: IO[Either[Throwable, A]] = IO(Try(this).toEither)
-    def option: IO[Option[A]] = IO(Some(this))
+    def attempt: IO[Either[Throwable, A]] = ???
+    def option: IO[Option[A]] = ???
     def handleErrorWith[AA >: A](f: Throwable => IO[AA]): IO[AA] = ???
     def redeem[B](recover: Throwable => B, map: A => B): IO[B] = ???
     def redeemWith[B](recover: Throwable => IO[B], bind: A => IO[B]): IO[B] =
       ???
-    def unsafeRunSync(): A = ???
+    def unsafeRunSync(): A = run()
     def unsafeToFuture(): Future[A] = ???
   }
 
   object IO {
-    def apply[A](body: => A): IO[A] = ???
+    def apply[A](body: => A): IO[A] = delay(body)
     def suspend[A](thunk: => IO[A]): IO[A] = ???
-    def delay[A](body: => A): IO[A] = ???
-    def pure[A](a: A): IO[A] = IO(pure(a))
-    def fromEither[A](e: Either[Throwable, A]): IO[A] =
-      IO(if (e.isRight) e.getOrElse("") else throw e.swap.getOrElse(""))
+    def delay[A](body: => A): IO[A] = new IO[A](() => body)
+    def pure[A](a: A): IO[A] = ???
+    def fromEither[A](e: Either[Throwable, A]): IO[A] = ???
 
     def fromOption[A](option: Option[A])(orElse: => Throwable): IO[A] =
       IO(option.getOrElse(throw orElse))
@@ -62,8 +61,8 @@ object EffectsHomework1Executable {
         case Failure(e) => throw e
       })
 
-    def none[A]: IO[Option[A]] = IO(Some(None))
-    def raiseError[A](e: Throwable): IO[A] = IO(throw e)
+    def none[A]: IO[Option[A]] = ???
+    def raiseError[A](e: Throwable): IO[A] = throw e
     def raiseUnless(cond: Boolean)(e: => Throwable): IO[Unit] =
       IO(if (!cond) throw e)
     def raiseWhen(cond: Boolean)(e: => Throwable): IO[Unit] =
