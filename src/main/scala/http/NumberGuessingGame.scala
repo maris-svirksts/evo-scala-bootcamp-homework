@@ -166,6 +166,10 @@ object GuessClient extends IOApp {
           uri / "user" / name / "guess" / currentGuess
         )
 
+      (for {
+        x <- client.expect[String](uri / "user" / name / "guess" / currentGuess)
+      } yield println(x)).unsafeRunAsyncAndForget()
+
       if (guessesLeft == 0) IO()
       else loop(guessesLeft - 1)
     }
