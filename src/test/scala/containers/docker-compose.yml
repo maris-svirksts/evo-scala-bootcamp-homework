@@ -1,0 +1,13 @@
+---
+# Simplest thing I could think of.
+version: "3.8"
+services:
+  mailcatcher:
+    image: "tophfr/mailcatcher"
+    ports:
+      - "80:80"
+      - "25:25"
+  redis:
+    image: "redis"
+    ports:
+      - "6379:6379"
