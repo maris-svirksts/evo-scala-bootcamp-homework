@@ -33,8 +33,6 @@ object GuessServer extends IOApp {
 
   private val gameRoutes = HttpRoutes.of[IO] {
     /*
-     * http://127.0.0.1:9001/user/maris/min/3/max/9/guesses/3
-     *
      * Using 'pretty' permalinks instead of GET or POST parameters because that looks better.
      *
      * Assume that the user is logged in and validated. That allows us to play multiple games within one browser at the same time.
@@ -44,13 +42,19 @@ object GuessServer extends IOApp {
      *
      * We set new values within cookies. If the specific user already had a game going, the data for it is reset.
      */
-    case GET -> Root / "user" / name / "min" / min / "max" / max / "guesses" / guesses =>
-      Ok(
-        s"Hello, ${name.capitalize}! You want to play a guessing game with numbers from $min to $max and the amount of guesses set to $guesses."
-      ).map(x => {
-        val r = scala.util.Random
-        val serverGuess = r.between(min.toInt, max.toInt + 1).toString
 
+    /*
+     Welcome user, setup or reset game.
+
+     http://127.0.0.1:9001/user/maris/min/3/max/9/guesses/3
+     */
+    case GET -> Root / "user" / name / "min" / min / "max" / max / "guesses" / guesses =>
+      val welcome = s"Hello, ${name.capitalize}! You want to play a guessing game with numbers from $min to $max and the amount of guesses set to $guesses."
+
+      val r           = scala.util.Random
+      val serverGuess = r.between(min.toInt, max.toInt + 1).toString
+
+      Ok( welcome ).map(x => {
         x.addCookie(
             ResponseCookie(
               name + "_min",
@@ -93,24 +97,27 @@ object GuessServer extends IOApp {
           )
       })
 
-    // curl "http://127.0.0.1:9001/user/maris/guess/3"
+    /*
+     Check a guess from a client, return answer.
+
+     http://127.0.0.1:9001/user/maris/guess/3
+     */
     case req @ GET -> Root / "user" / name / "guess" / guess =>
-      val counterCookie: Option[RequestCookie] =
-        req.cookies.find(_.name == name + "_guesses")
-      val counterValue: Int =
-        counterCookie.flatMap(_.content.toIntOption).fold(1)(_ - 1)
+      val victory  = "You won. Congratulations!"
+      val failure  = s"Hello, $name! You lost. Sorry!"
+      val tryAgain = s"Hello, ${name.capitalize}! Your guess is: $guess"
+
+      val counterCookie: Option[RequestCookie] = req.cookies.find(_.name == name + "_guesses")
+      val counterValue: Int                    = counterCookie.flatMap(_.content.toIntOption).fold(1)(_ - 1)
 
       val resultCookie: Option[RequestCookie] =
         req.cookies.find(_.name == name + "_server")
       val resultValue: Int = resultCookie.flatMap(_.content.toIntOption).get
 
-      if (guess.toInt == resultValue)
-        Ok(s"You won. Congratulations!")
-      else if (counterValue == 0) Ok(s"Hello, $name! You lost. Sorry!")
+      if (guess.toInt == resultValue) Ok(victory)
+      else if (counterValue == 0) Ok(failure)
       else {
-        Ok(
-          s"Hello, ${name.capitalize}! Your guess is: $guess"
-        ).map(x => {
+        Ok(tryAgain).map(x => {
           x.addCookie(
             ResponseCookie(
               name + "_guesses",
@@ -144,10 +151,10 @@ object GuessClient extends IOApp {
 
   // Generate some random values for client.
   val rand: Random.type = scala.util.Random
-  val min: Int = rand.between(0, 100)
-  val max: Int = rand.between(min + 1, 200)
-  val guesses: Int = (max - min) / rand.nextInt(10) + 1
-  val name: String = Random.alphanumeric.take(10).mkString
+  val min: Int          = rand.between(0, 100)
+  val max: Int          = rand.between(min + 1, 200)
+  val guesses: Int      = (max - min) / rand.nextInt(10) + 1
+  val name: String      = Random.alphanumeric.take(10).mkString
 
   private def printLine(string: String = ""): IO[Unit] = IO(println(string))
 
