@@ -1,7 +1,8 @@
 package http
 
 import cats.effect.{ExitCode, IO, IOApp}
-import cats.implicits.catsSyntaxFlatMapOps
+import cats.syntax.all._
+import http.Protocol._
 import org.http4s._
 import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.dsl.io._
@@ -28,6 +29,12 @@ import scala.util.Random
 //
 // Use HTTP or WebSocket for communication. The exact protocol and message format to use is not specified and
 // should be designed while working on the task.
+
+object Protocol {
+  final case class Game(min: Int, max: Int, guesses: Int)
+  final case class Step(guess: Int)
+  final case class Greeting(text: String)
+}
 
 object GuessServer extends IOApp {
 
@@ -110,9 +117,8 @@ object GuessServer extends IOApp {
       val counterCookie: Option[RequestCookie] = req.cookies.find(_.name == name + "_guesses")
       val counterValue: Int                    = counterCookie.flatMap(_.content.toIntOption).fold(1)(_ - 1)
 
-      val resultCookie: Option[RequestCookie] =
-        req.cookies.find(_.name == name + "_server")
-      val resultValue: Int = resultCookie.flatMap(_.content.toIntOption).get
+      val resultCookie: Option[RequestCookie] = req.cookies.find(_.name == name + "_server")
+      val resultValue: Int                    = resultCookie.flatMap(_.content.toIntOption).get
 
       if (guess.toInt == resultValue) Ok(victory)
       else if (counterValue == 0) Ok(failure)
@@ -132,7 +138,101 @@ object GuessServer extends IOApp {
       }
   }
 
-  private[http] val httpApp = { gameRoutes }.orNotFound
+  /*
+   Writing a JSON version for training purposes.
+   TODO: Duplicate Cookie calls, need to move them to a new function.
+   */
+  private val jsonGameRoutes = {
+    import io.circe.generic.auto._
+    import org.http4s.circe.CirceEntityCodec._
+
+    HttpRoutes.of[IO] {
+
+      // curl -XPOST "localhost:9001/json/welcome/maris" -d '{"min": 3, "max": 18, "guesses": 5}' -H "Content-Type: application/json"
+      case req @ POST -> Root / "json" / "welcome" / name =>
+        val greeting = Greeting(text = s"Hello, ${ name.capitalize }!")
+
+        req.as[Game].flatMap { game =>
+          val r           = scala.util.Random
+          val serverGuess = r.between(game.min, game.max + 1).toString
+
+          Ok(greeting).map(x => {
+            x.addCookie(
+              ResponseCookie(
+                name + "_min",
+                game.min.toString,
+                httpOnly = true,
+                secure = true,
+                sameSite = SameSite.Strict,
+                path = Some("/user/" + name)
+              )
+            )
+              .addCookie(
+                ResponseCookie(
+                  name + "_max",
+                  game.max.toString,
+                  httpOnly = true,
+                  secure = true,
+                  sameSite = SameSite.Strict,
+                  path = Some("/user/" + name)
+                )
+              )
+              .addCookie(
+                ResponseCookie(
+                  name + "_guesses",
+                  game.guesses.toString,
+                  httpOnly = true,
+                  secure = true,
+                  sameSite = SameSite.Strict,
+                  path = Some("/user/" + name)
+                )
+              )
+              .addCookie(
+                ResponseCookie(
+                  name + "_server",
+                  serverGuess,
+                  httpOnly = true,
+                  secure = true,
+                  sameSite = SameSite.Strict,
+                  path = Some("/user/" + name)
+                )
+              )
+          })
+        }
+
+      case req @ GET -> Root / "json" / "step" / name =>
+        val counterCookie: Option[RequestCookie] = req.cookies.find(_.name == name + "_guesses")
+        val counterValue: Int                    = counterCookie.flatMap(_.content.toIntOption).fold(1)(_ - 1)
+
+        val resultCookie: Option[RequestCookie] = req.cookies.find(_.name == name + "_server")
+        val resultValue: Int                    = resultCookie.flatMap(_.content.toIntOption).get
+
+        req.as[Step].flatMap { step =>
+          val victory  = "You won. Congratulations!"
+          val failure  = s"Hello, $name! You lost. Sorry!"
+          val tryAgain = s"Hello, ${name.capitalize}! Your guess is: ${ step.guess }"
+
+          if (step.guess == resultValue) Ok(victory)
+          else if (counterValue == 0) Ok(failure)
+          else {
+            Ok(tryAgain).map(x => {
+              x.addCookie(
+                ResponseCookie(
+                  name + "_guesses",
+                  counterValue.toString,
+                  httpOnly = true,
+                  secure = true,
+                  sameSite = SameSite.Strict,
+                  path = Some("/user/" + name)
+                )
+              )
+            })
+          }
+        }
+    }
+  }
+
+  private[http] val httpApp = { gameRoutes <+> jsonGameRoutes }.orNotFound
 
   override def run(args: List[String]): IO[ExitCode] =
     BlazeServerBuilder[IO](ExecutionContext.global)
