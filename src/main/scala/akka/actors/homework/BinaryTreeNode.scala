@@ -22,7 +22,7 @@ final class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Act
   /*
   - IntelliJ complains that the map is returning Unit. Not sure if that means that this is a hacky approach or no.
   It can be exchanged with match if needed.
-  - Similar code, might be a good idea to refactor. Move Left / Right decisions to variable since actions do not differ.
+  - In theory, could be made more DRY. Not sure itš worth it.
   - InternalActorRef: was added by autocomplete, not sure what's the difference between it
   and ActorRef: both passed tests. Left it in for fun and, possibly, insightful comments from lectors.
    */
@@ -38,22 +38,13 @@ final class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Act
     if(m.elem == elem) m.requester ! OperationFinished(m.id)
     else {
       val newElement = context.actorOf(BinaryTreeNode.props(m.elem, initiallyRemoved = false))
+      val sub = if(m.elem > elem) Right else Left
 
-      if(m.elem > elem) {
-        subtrees.get(Right) match {
-          case None =>
-            subtrees += (Right -> newElement)
-            m.requester ! OperationFinished(m.id)
-          case Some(value) => value ! m
-        }
-      }
-      else {
-        subtrees.get(Left) match {
-          case None =>
-            subtrees += (Right -> newElement)
-            m.requester ! OperationFinished(m.id)
-          case Some(value) => value ! m
-        }
+      subtrees.get(sub) match {
+        case None =>
+          subtrees += (sub -> newElement)
+          m.requester ! OperationFinished(m.id)
+        case Some(value) => value ! m
       }
     }
   }
@@ -62,11 +53,8 @@ final class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Act
     if (m.elem == elem) m.requester ! ContainsResult(m.id, !removed)
     else if(subtrees.isEmpty) m.requester ! ContainsResult(m.id, result = false)
     else {
-      if(m.elem > elem) subtrees.get(Right).map {
-        case ref: InternalActorRef => ref ! m
-        case _ => m.requester ! ContainsResult(m.id, result = false)
-      }
-      else subtrees.get(Left).map {
+      val sub = if(m.elem > elem) Right else Left
+      subtrees.get(sub).map {
         case ref: InternalActorRef => ref ! m
         case _ => m.requester ! ContainsResult(m.id, result = false)
       }
@@ -80,11 +68,8 @@ final class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Act
     }
     else if(subtrees.isEmpty) m.requester ! OperationFinished(m.id)
     else {
-      if(m.elem > elem) subtrees.get(Right).map {
-        case ref: InternalActorRef => ref ! m
-        case _ => m.requester ! OperationFinished(m.id)
-      }
-      else subtrees.get(Left).map {
+      val sub = if(m.elem > elem) Right else Left
+      subtrees.get(sub).map {
         case ref: InternalActorRef => ref ! m
         case _ => m.requester ! OperationFinished(m.id)
       }
