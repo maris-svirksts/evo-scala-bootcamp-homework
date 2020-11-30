@@ -1,4 +1,4 @@
-package com.evolutiongaming.bootcamp.async
+package async
 
 import java.net.URL
 import java.util.concurrent.Executors
