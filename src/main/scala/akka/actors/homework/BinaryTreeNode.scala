@@ -19,12 +19,8 @@ final class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Act
   private var subtrees: Map[Position, ActorRef] = Map[Position, ActorRef]()
   private var removed: Boolean                  = initiallyRemoved
 
-  /*
-  - IntelliJ complains that the map is returning Unit. Not sure if that means that this is a hacky approach or no.
-  It can be exchanged with match if needed.
-  - In theory, could be made more DRY. Not sure it's worth it.
-  - InternalActorRef: was added by autocomplete, not sure what's the difference between it
-  and ActorRef: both passed tests. Left it in for fun and, possibly, insightful comments from lectors.
+  /**
+   * In theory, could be made more DRY. Not sure it's worth it.
    */
 
   override def receive: Receive = {
@@ -39,12 +35,7 @@ final class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Act
       val newElement = context.actorOf(BinaryTreeNode.props(m.elem, initiallyRemoved = false))
       val sub = if(m.elem > elem) Right else Left
 
-      subtrees.get(sub) match {
-        case None =>
-          subtrees += (sub -> newElement)
-          m.requester ! OperationFinished(m.id)
-        case Some(value) => value ! m
-      }
+      subtrees.get(sub).fold({subtrees += (sub -> newElement); m.requester ! OperationFinished(m.id)})(_ ! m)
     }
   }
 
@@ -53,10 +44,7 @@ final class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Act
     else if(subtrees.isEmpty) m.requester ! ContainsResult(m.id, result = false)
     else {
       val sub = if(m.elem > elem) Right else Left
-      subtrees.get(sub) match {
-        case Some(value) => value ! m
-        case None => m.requester ! ContainsResult(m.id, result = false)
-      }
+      subtrees.get(sub).fold(m.requester ! ContainsResult(m.id, result = false))(_ ! m)
     }
   }
 
@@ -68,10 +56,7 @@ final class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Act
     else if(subtrees.isEmpty) m.requester ! OperationFinished(m.id)
     else {
       val sub = if(m.elem > elem) Right else Left
-      subtrees.get(sub) match {
-        case Some(value) => value ! m
-        case None => m.requester ! OperationFinished(m.id)
-      }
+      subtrees.get(sub).fold(m.requester ! OperationFinished(m.id))(_ ! m)
     }
   }
 }
