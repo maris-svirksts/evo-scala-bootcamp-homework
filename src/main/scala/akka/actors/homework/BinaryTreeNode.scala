@@ -1,6 +1,6 @@
 package akka.actors.homework
 
-import akka.actor.{Actor, ActorRef, InternalActorRef, Props}
+import akka.actor.{Actor, ActorRef, Props}
 
 object BinaryTreeNode {
   private sealed trait Position
@@ -22,7 +22,7 @@ final class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Act
   /*
   - IntelliJ complains that the map is returning Unit. Not sure if that means that this is a hacky approach or no.
   It can be exchanged with match if needed.
-  - In theory, could be made more DRY. Not sure itš worth it.
+  - In theory, could be made more DRY. Not sure it's worth it.
   - InternalActorRef: was added by autocomplete, not sure what's the difference between it
   and ActorRef: both passed tests. Left it in for fun and, possibly, insightful comments from lectors.
    */
@@ -31,7 +31,6 @@ final class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Act
     case insert: Insert     => doInsert(insert)
     case contains: Contains => doContains(contains)
     case remove: Remove     => doRemove(remove)
-    case _                  => ()
   }
 
   private def doInsert(m: Insert): Unit = {
@@ -54,9 +53,9 @@ final class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Act
     else if(subtrees.isEmpty) m.requester ! ContainsResult(m.id, result = false)
     else {
       val sub = if(m.elem > elem) Right else Left
-      subtrees.get(sub).map {
-        case ref: InternalActorRef => ref ! m
-        case _ => m.requester ! ContainsResult(m.id, result = false)
+      subtrees.get(sub) match {
+        case Some(value) => value ! m
+        case None => m.requester ! ContainsResult(m.id, result = false)
       }
     }
   }
@@ -69,9 +68,9 @@ final class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Act
     else if(subtrees.isEmpty) m.requester ! OperationFinished(m.id)
     else {
       val sub = if(m.elem > elem) Right else Left
-      subtrees.get(sub).map {
-        case ref: InternalActorRef => ref ! m
-        case _ => m.requester ! OperationFinished(m.id)
+      subtrees.get(sub) match {
+        case Some(value) => value ! m
+        case None => m.requester ! OperationFinished(m.id)
       }
     }
   }

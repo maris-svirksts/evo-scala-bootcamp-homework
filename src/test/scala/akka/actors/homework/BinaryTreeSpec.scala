@@ -22,6 +22,14 @@ class BinaryTreeSpec extends AnyFlatSpec {
     insertsAndSearch()
   }
 
+  "Testy-mc-test" should "test" in new Scope {
+    val topNode = system.actorOf(Props[BinaryTreeSet]())
+    topNode ! Insert(self, id = 10, elem = 1)
+    expectMsg(OperationFinished(id = 10))
+    topNode ! Contains(self, id = 20, elem = -1)
+    expectMsg(ContainsResult(id = 20, result = false))
+  }
+
   class Scope
       extends TestKit(ActorSystem("BinaryTreeSuite"))
       with ImplicitSender {
