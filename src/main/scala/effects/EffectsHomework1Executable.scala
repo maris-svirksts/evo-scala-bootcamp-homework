@@ -29,25 +29,25 @@ import scala.util.{Failure, Success, Try}
  */
 object EffectsHomework1Executable {
   final class IO[A] private (val run: () => A) {
-    def map[B](f: A => B): IO[B] = IO(f(unsafeRunSync()))
-    def flatMap[B](f: A => IO[B]): IO[B] = this.map(f).unsafeRunSync()
+    def map[B](f: A => B): IO[B] = IO(f(run()))
+    def flatMap[B](f: A => IO[B]): IO[B] = this.map(f).run()
     def *>[B](another: IO[B]): IO[B] = this.flatMap(x => another)
     def as[B](newValue: => B): IO[B] = this.map(_ => newValue)
     def void: IO[Unit] = this as ()
-    def attempt: IO[Either[Throwable, A]] = IO(Try(unsafeRunSync()).toEither)
-    def option: IO[Option[A]] = IO(Try(unsafeRunSync()) match {
+    def attempt: IO[Either[Throwable, A]] = IO(Try(run()).toEither)
+    def option: IO[Option[A]] = IO(Try(run()) match {
       case Failure(e) => None
       case Success(v) => Some(v)
     })
-    def handleErrorWith[AA >: A](f: Throwable => IO[AA]): IO[AA] = IO(Try(unsafeRunSync()) match {
-      case Failure(e) => f(e).unsafeRunSync()
+    def handleErrorWith[AA >: A](f: Throwable => IO[AA]): IO[AA] = IO(Try(run()) match {
+      case Failure(e) => f(e).run()
       case Success(v) => v
     })
-    def redeem[B](recover: Throwable => B, map: A => B): IO[B] = IO(Try(unsafeRunSync()) match {
+    def redeem[B](recover: Throwable => B, map: A => B): IO[B] = IO(Try(run()) match {
       case Failure(e) => recover(e)
       case Success(v) => map(v)
     })
-    def redeemWith[B](recover: Throwable => IO[B], bind: A => IO[B]): IO[B] = attempt.unsafeRunSync() match {
+    def redeemWith[B](recover: Throwable => IO[B], bind: A => IO[B]): IO[B] = attempt.run() match {
       case Left(v) => recover(v)
       case Right(v) => bind(v)
     }
@@ -77,13 +77,13 @@ object EffectsHomework1Executable {
     def none[A]: IO[Option[A]] = pure(None)
     def raiseError[A](e: Throwable): IO[A] = throw e
     def raiseUnless(cond: Boolean)(e: => Throwable): IO[Unit] =
-      IO(if (!cond) throw e)
+      IO(if (!cond) throw e else unit)
     def raiseWhen(cond: Boolean)(e: => Throwable): IO[Unit] =
-      IO(if (cond) throw e)
+      IO(if (cond) throw e else unit)
     def unlessA(cond: Boolean)(action: => IO[Unit]): IO[Unit] =
-      IO(if (!cond) action)
+      IO(if (!cond) action else unit)
     def whenA(cond: Boolean)(action: => IO[Unit]): IO[Unit] =
-      IO(if (cond) action)
+      IO(if (cond) action else unit)
     val unit: IO[Unit] = IO(())
   }
 }
